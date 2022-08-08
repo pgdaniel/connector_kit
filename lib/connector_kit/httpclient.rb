@@ -1,4 +1,8 @@
 require 'httparty'
+require 'zlib'
+require 'stringio'
+require 'pry'
+
 
 require 'connector_kit/exceptions'
 
@@ -13,6 +17,11 @@ module ConnectorKit
 
     def get(url, response_mapper)
       response = self.class.get(url)
+
+      if response.headers["content-type"] == "application/a-gzip"
+        gz = Zlib::GzipReader.new(StringIO.new(response.body.to_s))    
+        return uncompressed_string = gz.read
+      end
 
       raise make_api_error(response) unless response.code == 200
 
